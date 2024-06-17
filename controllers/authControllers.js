@@ -38,12 +38,32 @@ const signin = async (req, res) => {
     id,
   };
   const token = createToken(payload);
+  await authServices.updateUser({ _id: id }, { token });
   res.json({
     token,
+  });
+};
+
+const getCurrent = async (req, res) => {
+  const { email, subscription } = req.user;
+
+  res.json({
+    email,
+    subscription,
+  });
+};
+
+const logout = async (req, res) => {
+  const { _id } = req.user;
+  await authServices.updateUser({ _id }, { token: null });
+  res.json({
+    message: "Logout success",
   });
 };
 
 export default {
   signup: ctrlWrapper(signup),
   signin: ctrlWrapper(signin),
+  getCurrent: ctrlWrapper(getCurrent),
+  logout: ctrlWrapper(logout),
 };
