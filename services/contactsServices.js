@@ -12,8 +12,8 @@ export function removeContact(filter) {
   return Contact.findOneAndDelete(filter);
 }
 
-export function addContact({ name, email, phone }) {
-  return Contact.create({ name, email, phone });
+export function addContact(data) {
+  return Contact.create(data);
 }
 
 export function updateContactById(filter, data) {
