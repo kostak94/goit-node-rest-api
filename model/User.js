@@ -14,11 +14,14 @@ const userSchema = new Schema(
       unique: true,
       match: emailRegexp,
     },
-    avatarURL: String,
+
     subscription: {
       type: String,
       enum: ["starter", "pro", "business"],
       default: "starter",
+    },
+    avatarUrl: {
+      type: String,
     },
     token: {
       type: String,
