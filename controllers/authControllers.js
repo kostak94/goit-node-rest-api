@@ -8,6 +8,7 @@ import * as authServices from "../services/authServices.js";
 import HttpError from "../helpers/HttpError.js";
 import ctrlWrapper from "../helpers/ctrlWrapper.js";
 import { createToken } from "../helpers/jwt.js";
+import sendEmail from "../helpers/sendEmail.js";
 
 const avatarDir = path.resolve("public", "avatars");
 
@@ -71,6 +72,47 @@ const logout = async (req, res) => {
   });
 };
 
+const verify = async (req, res) => {
+  const { verificationCode } = req.params;
+  const user = await authServices.findUser({ verificationCode });
+  if (!user) {
+    throw HttpError(404, "Email not found or already verify");
+  }
+
+  await authServices.updateUser(
+    { _id: user._id },
+    { verify: true, verificationCode: "" }
+  );
+
+  res.json({
+    message: "Email verify success",
+  });
+};
+
+const resendEmail = async (req, res) => {
+  const { email } = req.body;
+  const user = await authServices.findUser({ email });
+  if (!user) {
+    throw HttpError(404, "Email not found");
+  }
+
+  if (user.verify) {
+    throw HttpError(400, "Email already verified");
+  }
+
+  const verifyEmail = {
+    to: email,
+    subject: "Verify email",
+    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${user.verificationCode}">Click verify email</a>`,
+  };
+
+  await sendEmail(verifyEmail);
+
+  res.json({
+    message: "Verify email send success",
+  });
+};
+
 const updateAvatar = async (req, res) => {
   const { _id } = req.body;
   const { path: oldPath, filename } = req.file;
@@ -93,4 +135,6 @@ export default {
   getCurrent: ctrlWrapper(getCurrent),
   logout: ctrlWrapper(logout),
   updateAvatar: ctrlWrapper(updateAvatar),
+  verify: ctrlWrapper(verify),
+  resendEmail: ctrlWrapper(resendEmail),
 };
